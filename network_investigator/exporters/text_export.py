@@ -3,7 +3,7 @@
 from datetime import datetime
 
 
-def export_text(devices, alerts, output_file='report.txt'):
+def export_text(devices, alerts, output_file='report.txt', stats=None):
     """
     Export analysis results to plain text format.
     
@@ -11,7 +11,10 @@ def export_text(devices, alerts, output_file='report.txt'):
         devices: Dictionary of DeviceProfile objects
         alerts: List of alert dictionaries
         output_file: Path to output file
+        stats: Dictionary of statistics (optional)
     """
+    if stats is None:
+        stats = {}
     with open(output_file, 'w') as f:
         f.write("=" * 80 + "\n")
         f.write("NETWORK PACKET INVESTIGATOR REPORT\n")
@@ -34,6 +37,15 @@ def export_text(devices, alerts, output_file='report.txt'):
             f.write("Alert Breakdown:\n")
             for alert_type, count in sorted(alert_types.items()):
                 f.write(f"  - {alert_type}: {count}\n")
+            f.write("\n")
+        
+        # Add typosquat and exfiltration detection stats
+        if stats.get('typosquat_detections', 0) > 0 or stats.get('exfiltration_detections', 0) > 0:
+            f.write("Detection Statistics:\n")
+            if stats.get('typosquat_detections', 0) > 0:
+                f.write(f"  Typosquat Detections: {stats['typosquat_detections']}\n")
+            if stats.get('exfiltration_detections', 0) > 0:
+                f.write(f"  Exfiltration Detections: {stats['exfiltration_detections']}\n")
             f.write("\n")
         
         # Alerts section
@@ -81,7 +93,10 @@ def export_text(devices, alerts, output_file='report.txt'):
             f.write(f"Connections: {summary['total_connections']}\n")
             f.write(f"Data Sent: {summary['bytes_sent'] / 1024:.2f} KB\n")
             f.write(f"Data Received: {summary['bytes_received'] / 1024:.2f} KB\n")
-            f.write(f"DNS Queries: {summary['dns_queries']}\n")
+            f.write(f"Unique Destinations: {summary['unique_destinations']}\n")
+            f.write(f"DNS Queries: {summary['dns_query_count']}\n")
+            if summary['large_uploads_count'] > 0:
+                f.write(f"Large Uploads Detected: {summary['large_uploads_count']}\n")
             f.write(f"Alerts: {summary['alert_count']}\n")
             f.write("\n")
     

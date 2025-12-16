@@ -16,6 +16,10 @@ class DeviceProfile:
         self.bytes_received = 0
         self.protocols = defaultdict(int)
         self.alerts = []
+        # New fields for enhanced tracking
+        self.dns_query_count = 0
+        self.unique_destinations = set()
+        self.large_uploads = []
     
     def add_hostname(self, hostname):
         """Add a hostname associated with this device."""
@@ -26,6 +30,7 @@ class DeviceProfile:
         """Track a DNS query made by this device."""
         if domain:
             self.dns_queries[domain] += 1
+            self.dns_query_count += 1
     
     def add_connection(self, destination, timestamp, protocol='TCP'):
         """Track a connection from this device."""
@@ -35,6 +40,7 @@ class DeviceProfile:
             'protocol': protocol
         })
         self.protocols[protocol] += 1
+        self.unique_destinations.add(destination)
     
     def add_data_transfer(self, bytes_sent=0, bytes_received=0):
         """Track data transfer volumes."""
@@ -44,6 +50,14 @@ class DeviceProfile:
     def add_alert(self, alert):
         """Add a security alert for this device."""
         self.alerts.append(alert)
+    
+    def add_large_upload(self, destination, bytes_sent, timestamp):
+        """Track a large file upload."""
+        self.large_uploads.append({
+            'destination': destination,
+            'bytes': bytes_sent,
+            'timestamp': timestamp
+        })
     
     def get_summary(self):
         """Get a summary of this device's activity."""
@@ -56,5 +70,8 @@ class DeviceProfile:
             'bytes_received': self.bytes_received,
             'protocols': dict(self.protocols),
             'dns_queries': len(self.dns_queries),
-            'alert_count': len(self.alerts)
+            'alert_count': len(self.alerts),
+            'dns_query_count': self.dns_query_count,
+            'unique_destinations': len(self.unique_destinations),
+            'large_uploads_count': len(self.large_uploads)
         }

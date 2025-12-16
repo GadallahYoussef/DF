@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 
-def export_json(devices, alerts, output_file='report.json'):
+def export_json(devices, alerts, output_file='report.json', stats=None):
     """
     Export analysis results to JSON format.
     
@@ -12,7 +12,10 @@ def export_json(devices, alerts, output_file='report.json'):
         devices: Dictionary of DeviceProfile objects
         alerts: List of alert dictionaries
         output_file: Path to output file
+        stats: Dictionary of statistics (optional)
     """
+    if stats is None:
+        stats = {}
     # Prepare device summaries
     device_summaries = {}
     for ip, device in devices.items():
@@ -35,6 +38,10 @@ def export_json(devices, alerts, output_file='report.json'):
         alert_type = alert.get('type', 'unknown')
         report['summary']['alert_breakdown'][alert_type] = \
             report['summary']['alert_breakdown'].get(alert_type, 0) + 1
+    
+    # Add detection statistics
+    if stats:
+        report['summary']['detection_stats'] = stats
     
     # Write to file
     with open(output_file, 'w') as f:

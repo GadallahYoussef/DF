@@ -3,7 +3,7 @@
 from datetime import datetime
 
 
-def export_html(devices, alerts, output_file='report.html'):
+def export_html(devices, alerts, output_file='report.html', stats=None):
     """
     Export analysis results to HTML format.
     
@@ -11,7 +11,10 @@ def export_html(devices, alerts, output_file='report.html'):
         devices: Dictionary of DeviceProfile objects
         alerts: List of alert dictionaries
         output_file: Path to output file
+        stats: Dictionary of statistics (optional)
     """
+    if stats is None:
+        stats = {}
     # Count alerts by type
     alert_types = {}
     for alert in alerts:
@@ -194,6 +197,23 @@ def export_html(devices, alerts, output_file='report.html'):
             </div>
 """
     
+    # Add typosquat and exfiltration detection stats
+    if stats.get('typosquat_detections', 0) > 0:
+        html += f"""
+            <div class="summary-card" style="border-left-color: #dc3545;">
+                <h3>Typosquat Detections</h3>
+                <div class="value" style="color: #dc3545;">{stats['typosquat_detections']}</div>
+            </div>
+"""
+    
+    if stats.get('exfiltration_detections', 0) > 0:
+        html += f"""
+            <div class="summary-card" style="border-left-color: #dc3545;">
+                <h3>Exfiltration Detections</h3>
+                <div class="value" style="color: #dc3545;">{stats['exfiltration_detections']}</div>
+            </div>
+"""
+    
     html += """
         </div>
         
@@ -272,11 +292,25 @@ def export_html(devices, alerts, output_file='report.html'):
                     <span class="info-label">Data Received:</span> {summary['bytes_received'] / 1024:.2f} KB
                 </div>
                 <div class="info-item">
-                    <span class="info-label">DNS Queries:</span> {summary['dns_queries']}
+                    <span class="info-label">Unique Destinations:</span> {summary['unique_destinations']}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">DNS Queries:</span> {summary['dns_query_count']}
                 </div>
                 <div class="info-item">
                     <span class="info-label">Alerts:</span> {summary['alert_count']}
                 </div>
+"""
+        
+        # Add large uploads warning if detected
+        if summary['large_uploads_count'] > 0:
+            html += f"""
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <span style="color: #c62828; font-weight: bold;">📤 Large Uploads:</span> {summary['large_uploads_count']} detected
+                </div>
+"""
+        
+        html += """
             </div>
         </div>
 """
