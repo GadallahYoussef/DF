@@ -170,9 +170,11 @@ def test_device_profile_enhancements():
     assert 'dns_query_count' in summary, "Summary should include dns_query_count"
     assert 'unique_destinations' in summary, "Summary should include unique_destinations"
     assert 'large_uploads_count' in summary, "Summary should include large_uploads_count"
+    assert 'unique_domains_count' in summary, "Summary should include unique_domains_count"
     assert summary['dns_query_count'] == 3, f"Summary dns_query_count should be 3, got {summary['dns_query_count']}"
     assert summary['unique_destinations'] == 2, f"Summary unique_destinations should be 2, got {summary['unique_destinations']}"
     assert summary['large_uploads_count'] == 2, f"Summary large_uploads_count should be 2, got {summary['large_uploads_count']}"
+    assert summary['unique_domains_count'] == 2, f"Summary unique_domains_count should be 2, got {summary['unique_domains_count']}"
     
     print("✓ Enhanced DeviceProfile tests passed")
 
