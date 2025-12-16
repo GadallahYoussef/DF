@@ -69,7 +69,7 @@ class DeviceProfile:
             'bytes_sent': self.bytes_sent,
             'bytes_received': self.bytes_received,
             'protocols': dict(self.protocols),
-            'dns_queries': len(self.dns_queries),
+            'unique_domains_count': len(self.dns_queries),
             'alert_count': len(self.alerts),
             'dns_query_count': self.dns_query_count,
             'unique_destinations': len(self.unique_destinations),

@@ -132,15 +132,19 @@ class PacketInvestigator:
         for alert in upload_alerts:
             self.all_alerts.append(alert)
             self.stats['exfiltration_detections'] += 1
+            destination = alert.get('destination')
+            bytes_sent = self.exfiltration_detector.data_transfers.get(destination, 0)
+            
             # Add alert to relevant devices and track large uploads
             for device in self.devices.values():
-                for conn in device.connections:
-                    if conn['destination'] == alert.get('destination'):
-                        device.add_alert(alert)
-                        # Track large upload details
-                        bytes_sent = self.exfiltration_detector.data_transfers.get(alert.get('destination'), 0)
-                        device.add_large_upload(alert.get('destination'), bytes_sent, conn['timestamp'])
-                        break
+                # Check if this device has connections to this destination
+                has_connection = any(conn['destination'] == destination for conn in device.connections)
+                if has_connection:
+                    device.add_alert(alert)
+                    # Get the timestamp of the first connection to this destination
+                    first_conn = next((conn for conn in device.connections if conn['destination'] == destination), None)
+                    if first_conn:
+                        device.add_large_upload(destination, bytes_sent, first_conn['timestamp'])
     
     def export_results(self, format='all', output_prefix='report'):
         """
