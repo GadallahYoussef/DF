@@ -105,6 +105,7 @@ network_investigator/
 - Alert deduplication by type + domain/IP + source
 - Proper thresholds to avoid flagging normal traffic
 
-## License
-
-MIT
+## Test Cases
+- https://www.malware-traffic-analysis.net/2025/06/13/2025-06-13-traffic-analysis-exercise.pcap.zip Password: infected_20250613
+- https://www.malware-traffic-analysis.net/2025/01/22/2025-01-22-traffic-analysis-exercise.pcap.zip Password: infected_20250122
+- Psexec lab on Cyberdefenders
