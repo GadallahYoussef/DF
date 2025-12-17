@@ -92,8 +92,6 @@ def export_text(devices, alerts, output_file='report.txt', stats=None):
             f.write("-" * 80 + "\n")
             if summary['mac_address']:
                 f.write(f"MAC Address: {summary['mac_address']}\n")
-            if summary['device_hostname']:
-                f.write(f"Hostname: {summary['device_hostname']}\n")
             if summary['user_accounts']:
                 f.write(f"User Accounts: {', '.join(summary['user_accounts'])}\n")
             if summary['hostnames']:

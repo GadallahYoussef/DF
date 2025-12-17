@@ -280,12 +280,6 @@ def export_html(devices, alerts, output_file='report.html', stats=None):
                     <span class="info-label">MAC Address:</span> {summary['mac_address']}
                 </div>
 """
-        if summary['device_hostname']:
-            html += f"""
-                <div class="info-item">
-                    <span class="info-label">Hostname:</span> {summary['device_hostname']}
-                </div>
-"""
         if summary['user_accounts']:
             html += f"""
                 <div class="info-item">
