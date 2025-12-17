@@ -11,6 +11,7 @@ from network_investigator.detectors.whitelist import is_whitelisted
 from network_investigator.detectors.typosquat import TyposquatDetector
 from network_investigator.detectors.exfiltration import DataExfiltrationDetector
 from network_investigator.utils.entropy import calculate_entropy
+from network_investigator.models.device import DeviceProfile
 
 
 def test_whitelist():
@@ -131,6 +132,53 @@ def test_deduplication():
     print("✓ Deduplication tests passed")
 
 
+def test_device_profile_enhancements():
+    """Test new DeviceProfile fields and functionality."""
+    print("\nTesting enhanced DeviceProfile...")
+    
+    # Create a device profile
+    device = DeviceProfile('192.168.1.100', 'AA:BB:CC:DD:EE:FF')
+    
+    # Test initial values
+    assert device.dns_query_count == 0, "Initial DNS query count should be 0"
+    assert len(device.unique_destinations) == 0, "Initial unique destinations should be empty"
+    assert len(device.large_uploads) == 0, "Initial large uploads should be empty"
+    
+    # Test DNS query tracking
+    device.add_dns_query('example.com')
+    device.add_dns_query('test.com')
+    device.add_dns_query('example.com')  # Duplicate
+    assert device.dns_query_count == 3, f"DNS query count should be 3, got {device.dns_query_count}"
+    
+    # Test unique destinations tracking
+    device.add_connection('10.0.0.1', 1000.0, 'TCP')
+    device.add_connection('10.0.0.2', 1001.0, 'TCP')
+    device.add_connection('10.0.0.1', 1002.0, 'TCP')  # Duplicate destination
+    assert len(device.unique_destinations) == 2, f"Should have 2 unique destinations, got {len(device.unique_destinations)}"
+    assert '10.0.0.1' in device.unique_destinations, "10.0.0.1 should be in unique destinations"
+    assert '10.0.0.2' in device.unique_destinations, "10.0.0.2 should be in unique destinations"
+    
+    # Test large upload tracking
+    device.add_large_upload('10.0.0.5', 52428800, 2000.0)  # 50MB
+    device.add_large_upload('10.0.0.6', 104857600, 2001.0)  # 100MB
+    assert len(device.large_uploads) == 2, f"Should have 2 large uploads, got {len(device.large_uploads)}"
+    assert device.large_uploads[0]['destination'] == '10.0.0.5', "First upload destination should be 10.0.0.5"
+    assert device.large_uploads[0]['bytes'] == 52428800, "First upload bytes should be 52428800"
+    
+    # Test get_summary includes new fields
+    summary = device.get_summary()
+    assert 'dns_query_count' in summary, "Summary should include dns_query_count"
+    assert 'unique_destinations' in summary, "Summary should include unique_destinations"
+    assert 'large_uploads_count' in summary, "Summary should include large_uploads_count"
+    assert 'unique_domains_count' in summary, "Summary should include unique_domains_count"
+    assert summary['dns_query_count'] == 3, f"Summary dns_query_count should be 3, got {summary['dns_query_count']}"
+    assert summary['unique_destinations'] == 2, f"Summary unique_destinations should be 2, got {summary['unique_destinations']}"
+    assert summary['large_uploads_count'] == 2, f"Summary large_uploads_count should be 2, got {summary['large_uploads_count']}"
+    assert summary['unique_domains_count'] == 2, f"Summary unique_domains_count should be 2, got {summary['unique_domains_count']}"
+    
+    print("✓ Enhanced DeviceProfile tests passed")
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("Running Network Packet Investigator Tests")
@@ -142,6 +190,7 @@ if __name__ == '__main__':
         test_beaconing()
         test_entropy()
         test_deduplication()
+        test_device_profile_enhancements()
         
         print("\n" + "=" * 60)
         print("✅ All tests passed!")

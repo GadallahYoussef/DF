@@ -23,6 +23,12 @@ class PacketInvestigator:
         # Initialize detectors
         self.typosquat_detector = TyposquatDetector()
         self.exfiltration_detector = DataExfiltrationDetector()
+        
+        # Initialize statistics
+        self.stats = {
+            'typosquat_detections': 0,
+            'exfiltration_detections': 0
+        }
     
     def analyze(self):
         """Analyze the PCAP file and detect suspicious activity."""
@@ -97,6 +103,7 @@ class PacketInvestigator:
                     alert['source'] = ip
                     device.add_alert(alert)
                     self.all_alerts.append(alert)
+                    self.stats['typosquat_detections'] += 1
                 
                 # Check for DNS tunneling
                 dns_tunnel_alerts = self.exfiltration_detector.check_dns_tunneling(
@@ -106,11 +113,13 @@ class PacketInvestigator:
                     alert['source'] = ip
                     device.add_alert(alert)
                     self.all_alerts.append(alert)
+                    self.stats['exfiltration_detections'] += 1
         
         # Check for beaconing
         beaconing_alerts = self.exfiltration_detector.check_beaconing()
         for alert in beaconing_alerts:
             self.all_alerts.append(alert)
+            self.stats['exfiltration_detections'] += 1
             # Add alert to relevant devices
             for device in self.devices.values():
                 for conn in device.connections:
@@ -122,12 +131,20 @@ class PacketInvestigator:
         upload_alerts = self.exfiltration_detector.check_large_uploads()
         for alert in upload_alerts:
             self.all_alerts.append(alert)
-            # Add alert to relevant devices
+            self.stats['exfiltration_detections'] += 1
+            destination = alert.get('destination')
+            bytes_sent = self.exfiltration_detector.data_transfers.get(destination, 0)
+            
+            # Add alert to relevant devices and track large uploads
             for device in self.devices.values():
-                for conn in device.connections:
-                    if conn['destination'] == alert.get('destination'):
-                        device.add_alert(alert)
-                        break
+                # Check if this device has connections to this destination
+                has_connection = any(conn['destination'] == destination for conn in device.connections)
+                if has_connection:
+                    device.add_alert(alert)
+                    # Get the timestamp of the first connection to this destination
+                    first_conn = next((conn for conn in device.connections if conn['destination'] == destination), None)
+                    if first_conn:
+                        device.add_large_upload(destination, bytes_sent, first_conn['timestamp'])
     
     def export_results(self, format='all', output_prefix='report'):
         """
@@ -138,10 +155,10 @@ class PacketInvestigator:
             output_prefix: Prefix for output files
         """
         if format in ('json', 'all'):
-            export_json(self.devices, self.all_alerts, f'{output_prefix}.json')
+            export_json(self.devices, self.all_alerts, f'{output_prefix}.json', self.stats)
         
         if format in ('html', 'all'):
-            export_html(self.devices, self.all_alerts, f'{output_prefix}.html')
+            export_html(self.devices, self.all_alerts, f'{output_prefix}.html', self.stats)
         
         if format in ('text', 'all'):
-            export_text(self.devices, self.all_alerts, f'{output_prefix}.txt')
+            export_text(self.devices, self.all_alerts, f'{output_prefix}.txt', self.stats)
