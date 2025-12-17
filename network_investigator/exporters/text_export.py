@@ -84,12 +84,18 @@ def export_text(devices, alerts, output_file='report.txt', stats=None):
         f.write("=" * 80 + "\n\n")
         for ip, device in devices.items():
             summary = device.get_summary()
-            f.write(f"Device: {ip}\n")
+            # Display device with hostname if available
+            if summary['device_hostname']:
+                f.write(f"Device: {summary['device_hostname']} ({ip})\n")
+            else:
+                f.write(f"Device: {ip}\n")
             f.write("-" * 80 + "\n")
             if summary['mac_address']:
                 f.write(f"MAC Address: {summary['mac_address']}\n")
+            if summary['user_accounts']:
+                f.write(f"User Accounts: {', '.join(summary['user_accounts'])}\n")
             if summary['hostnames']:
-                f.write(f"Hostnames: {', '.join(summary['hostnames'])}\n")
+                f.write(f"DNS Hostnames: {', '.join(summary['hostnames'])}\n")
             f.write(f"Connections: {summary['total_connections']}\n")
             f.write(f"Data Sent: {summary['bytes_sent'] / 1024:.2f} KB\n")
             f.write(f"Data Received: {summary['bytes_received'] / 1024:.2f} KB\n")

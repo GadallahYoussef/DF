@@ -264,9 +264,14 @@ def export_html(devices, alerts, output_file='report.html', stats=None):
     
     for ip, device in devices.items():
         summary = device.get_summary()
+        # Create device header with hostname if available
+        device_title = f"📱 Device: {ip}"
+        if summary['device_hostname']:
+            device_title = f"📱 Device: {summary['device_hostname']} ({ip})"
+        
         html += f"""
         <div class="device">
-            <div class="device-header">📱 Device: {ip}</div>
+            <div class="device-header">{device_title}</div>
             <div class="device-info">
 """
         if summary['mac_address']:
@@ -275,10 +280,16 @@ def export_html(devices, alerts, output_file='report.html', stats=None):
                     <span class="info-label">MAC Address:</span> {summary['mac_address']}
                 </div>
 """
+        if summary['user_accounts']:
+            html += f"""
+                <div class="info-item">
+                    <span class="info-label">User Accounts:</span> {', '.join(summary['user_accounts'])}
+                </div>
+"""
         if summary['hostnames']:
             html += f"""
                 <div class="info-item">
-                    <span class="info-label">Hostnames:</span> {', '.join(summary['hostnames'])}
+                    <span class="info-label">DNS Hostnames:</span> {', '.join(summary['hostnames'])}
                 </div>
 """
         html += f"""

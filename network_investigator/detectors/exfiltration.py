@@ -10,9 +10,9 @@ class DataExfiltrationDetector:
     
     # Thresholds for detection
     LARGE_UPLOAD_THRESHOLD = 50 * 1024 * 1024  # 50 MB
-    MIN_BEACONING_CONNECTIONS = 10  # Require at least 10 connections
-    MIN_BEACONING_INTERVAL = 30.0  # 30 seconds minimum interval
-    MAX_VARIANCE_RATIO = 0.3  # Low variance relative to mean indicates regularity
+    MIN_BEACONING_CONNECTIONS = 15  # Require at least 15 connections (increased from 10)
+    MIN_BEACONING_INTERVAL = 60.0  # 60 seconds minimum interval (increased from 30)
+    MAX_VARIANCE_RATIO = 0.2  # Low variance relative to mean indicates regularity (stricter)
     
     def __init__(self):
         self.connection_times = defaultdict(list)

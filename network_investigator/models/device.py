@@ -20,6 +20,11 @@ class DeviceProfile:
         self.dns_query_count = 0
         self.unique_destinations = set()
         self.large_uploads = []
+        # Device identification fields
+        self.device_hostname = None  # Actual device hostname (e.g., "DESKTOP-5AVE44C")
+        self.user_accounts = set()   # User accounts detected on this device
+        self.first_seen = None       # Timestamp of first packet
+        self.last_seen = None        # Timestamp of last packet
     
     def add_hostname(self, hostname):
         """Add a hostname associated with this device."""
@@ -41,6 +46,12 @@ class DeviceProfile:
         })
         self.protocols[protocol] += 1
         self.unique_destinations.add(destination)
+        
+        # Update first_seen and last_seen timestamps
+        if self.first_seen is None or timestamp < self.first_seen:
+            self.first_seen = timestamp
+        if self.last_seen is None or timestamp > self.last_seen:
+            self.last_seen = timestamp
     
     def add_data_transfer(self, bytes_sent=0, bytes_received=0):
         """Track data transfer volumes."""
@@ -64,6 +75,8 @@ class DeviceProfile:
         return {
             'ip_address': self.ip_address,
             'mac_address': self.mac_address,
+            'device_hostname': self.device_hostname,
+            'user_accounts': list(self.user_accounts),
             'hostnames': list(self.hostnames),
             'total_connections': len(self.connections),
             'bytes_sent': self.bytes_sent,
@@ -73,5 +86,7 @@ class DeviceProfile:
             'alert_count': len(self.alerts),
             'dns_query_count': self.dns_query_count,
             'unique_destinations': len(self.unique_destinations),
-            'large_uploads_count': len(self.large_uploads)
+            'large_uploads_count': len(self.large_uploads),
+            'first_seen': self.first_seen,
+            'last_seen': self.last_seen
         }
